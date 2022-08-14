@@ -6,6 +6,11 @@ function Show(data) {
     <Default>
       <main>
         <h1>{data.place.name}</h1>
+        <img src={data.place.pic} className="rounded mx-auto d-block" alt={data.place.name} height="200" />
+        <h2> Rating: </h2>
+        <p className="text-center">
+          Located in {data.place.city}, {data.place.state}
+        </p>
       </main>
 
       <a href={`/places/${data.id}/edit`} className="btn btn-warning">
@@ -20,5 +25,6 @@ function Show(data) {
     </Default>
   );
 }
+
 
 module.exports = Show;
