@@ -1,9 +1,29 @@
 const Express = require('express')
-const place = Express.Router()
+const router = Express.Router()
 const Place = require('../models/places.js')
+const Comment = require('../models/comment.js')
+
+//SEED
+router.get('/seed', async (req, res) => {
+  const seedPlaces = require('../seeders/seed-places')
+    await Place.insertMany(seedPlaces)
+      let place = await Place.findOne({ name: 'H-Thai-ML' })
+      let comment = await Comment.create({
+        author: 'Famished Fran',
+        rant: false,
+        stars: 5.0,
+        content: 'Wow, simply amazing! Highly recommended!'
+    })
+
+    place.comments.push(comment.id)
+    await place.save()
+
+
+      res.redirect('/places')
+})
 
 //INDEX
-place.get('/', async (req, res) => {
+router.get('/', async (req, res) => {
     const foundPlaces = await Place.find().lean()
       res.render('places/index', {
         places: foundPlaces})
@@ -28,7 +48,8 @@ place.get('/', async (req, res) => {
 
 */
 
-place.post('/', (req, res) => {
+//POST
+router.post('/', (req, res) => {
   Place.create(req.body)
   .then(() => {
       res.redirect('/places')
@@ -40,13 +61,13 @@ place.post('/', (req, res) => {
 })
 
 //NEW
-place.get('/new', (req, res) => {
+router.get('/new', (req, res) => {
   res.render('places/new')
 })
 
 
 //EDIT
-place.get('/:id/edit', (req, res) => {
+router.get('/:id/edit', (req, res) => {
   Place.findById(req.params.id).then((foundPlace) => {
     res.render("places/edit", {
       place: foundPlace
@@ -56,9 +77,11 @@ place.get('/:id/edit', (req, res) => {
 
 
 //SHOW
-place.get('/:id', (req, res) => {
+router.get('/:id', (req, res) => {
   Place.findById(req.params.id)
+  .populate('comments')
   .then((foundPlace) => {
+      console.log(foundPlace.comments)
       res.render('places/show', {
         place: foundPlace})
   })
@@ -70,7 +93,7 @@ place.get('/:id', (req, res) => {
 
 
 //UPDATE
-place.put('/:id', (req, res) => {
+router.put('/:id', (req, res) => {
   Place.findByIdAndUpdate(req.params.id, req.body, {new: true}).then(
     (updatedPlace) => {
       console.log(updatedPlace)
@@ -80,23 +103,39 @@ place.put('/:id', (req, res) => {
 
 
 //DELETE
-place.delete('/:id', (req, res) => {
+router.delete('/:id', (req, res) => {
   Place.findByIdAndDelete(req.params.id).then((deletedPlace) => {
     res.status(303).redirect("/places")
   })
 })
 
-
-
-
-place.post('/:id/rant', (req, res) => {
-  res.send('GET /places/:id/rant stub')
+//COMMENT
+router.post('/:id/comment', (req, res) => {
+  req.body.rant = req.body.rant ? true : false
+  Place.findById(req.params.id)
+  .then(place => {
+      Comment.create(req.body)
+      .then(comment => {
+          place.comments.push(comment.id)
+          place.save()
+          .then(() => {
+              res.redirect(`/places/${req.params.id}`)
+          })
+      })
+      .catch(err => {
+          res.render('404')
+      })
+  })
+  .catch(err => {
+      res.render('404')
+  })
 })
 
-place.delete('/:id/rant/:rantId', (req, res) => {
+
+router.delete('/:id/rant/:rantId', (req, res) => {
     res.send('GET /places/:id/rant/:rantId stub')
 })
 
-module.exports = place
+module.exports = router
 
 

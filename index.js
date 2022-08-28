@@ -6,6 +6,9 @@ const mongoose = require('mongoose')
 const methodOverride = require('method-override')
 const PORT = process.env.PORT
 
+module.exports.Place = require('./models/places')
+module.exports.Comment = require('./models/comment')
+
 // MIDDLEWARE
 app.set('views', __dirname + '/views')
 app.set('view engine', 'jsx')
