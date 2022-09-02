@@ -20,6 +20,7 @@ app.use(methodOverride('_method'))
 
 //CONNECT
 mongoose.connect(process.env.MONGO_URI, {family:4}, function(err, connection) {
+  if (err) console.log(err)
   console.log('connected to DB')
 });
 
